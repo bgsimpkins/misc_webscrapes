@@ -67,7 +67,7 @@ while i < len(rows):
     tds = rows[i].getchildren()
     # Loop through cells
 
-    if len(tds) == 8:
+    if len(tds) == len(weapons_dict):
         td_i = 0
         for td in tds:
             print(f"cell #{td_i}: {td.text_content()}")
@@ -133,7 +133,7 @@ while i < len(rows):
     tds = rows[i].getchildren()
     # Loop through cells
 
-    if len(tds) == 6:
+    if len(tds) == len(shields_dict):
         td_i = 0
         for td in tds:
             print(f"cell #{td_i}: {td.text_content()}")
