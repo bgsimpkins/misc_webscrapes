@@ -1,8 +1,8 @@
 require(XML)
 require(RCurl)
-require(RMySQL)
+#require(RMySQL)
 
-setwd("/home/bsimpkins/Documents/R/Darklyrics_scrape/")
+#setwd("/home/bsimpkins/Documents/R/Darklyrics_scrape/")
 rootURL <- "http://www.darklyrics.com/"
 
 ########################################Functions
@@ -107,82 +107,82 @@ getLyricsForAlbum <- function(albumPage)
   list(songLines=songFrame,notes=notesFrame)
 }
 
-importAlbumLyrics <- function(songLines, artistName, albumNo, albumTitle, notes=NULL,overwrite=FALSE)
-{
-  songLines$title <- sapply(songLines$title,as.character)
-  songLines$line <- sapply(songLines$line,as.character)
-  
-  conn <- dbConnect(MySQL(), user="bsimpkins", 
-      password="yourmomma",
-      dbname="lyric_database", 
-      host="192.168.0.11")
-  
-  ##Check if artist exists. If so, get id. If not, add.
-  res <- dbGetQuery(conn, paste("SELECT artistId FROM Artist WHERE artistName = '",artistName,"'",sep=""))
-  if (nrow(res) == 0)
-  {
-    dbSendQuery(conn, paste("INSERT INTO Artist (artistName) VALUES ('",artistName,"')",sep=""))
-  }
-  
-  res <- dbGetQuery(conn, paste("SELECT artistId FROM Artist WHERE artistName = '",artistName,"'",sep=""))
-  artistId <- res["artistId"]
-  
-  ##Check to see if album exists
-  res <- dbGetQuery(conn, paste("SELECT albumId FROM Album WHERE artistId = ",artistId," AND albumTitle = '",albumTitle,"'",sep=""))
-  if (nrow(res) > 0)
-  {
-    warning(paste("Album exists! Overwrite=",overwrite))
-    if (overwrite)       ##If overwrite specified, delete all songs and song lines here to start clean.
-    {
-      ##TODO: Clean out songs and songLines. First query Song to get a list of songs for album. Then delete.
-    }
-  }else{
-    sql <- "INSERT INTO Album (albumNo, albumTitle, artistId) VALUES (<albumNo>,'<albumTitle>',<artistId>)"
-    sql <- gsub("<albumNo>",albumNo,sql,fixed = T)
-    sql <- gsub("<albumTitle>",albumTitle,sql,fixed = T)
-    sql <- gsub("<artistId>",artistId,sql,fixed = T)
-    
-    dbSendQuery(conn,sql)
-    
-    ##Get generated album Id
-    sql <- paste("SELECT albumId FROM Album WHERE artistId = ",artistId," AND albumTitle = '",albumTitle,"'",sep="")
-    res <- dbGetQuery(conn,sql)
-    albumId <- res["albumId"]
-    
-    ##Loop through song lines and add them
-    songNo <- 0
-    songId <- NULL
-    
-    #apply(songLines,1,function(x)
-    for (i in 1:nrow(songLines))
-    {
-      x <- songLines[i,]
-      if (as.numeric(x["songNo"]) > as.numeric(songNo))
-      {
-        songNo <- x["songNo"]
-        songTitle <- as.character(x["title"])
-        
-        ##TODO: Insert song into song
-        sql <- paste("INSERT INTO Song (songNo, songTitle, albumId) VALUES (",songNo,",'",songTitle,"',",albumId,")",sep="")
-        dbSendQuery(conn,sql)
-        ##TODO: Get generated songId
-        sql <- paste("SELECT songId FROM Song WHERE albumId=",albumId," AND songTitle='",songTitle,"'",sep="")
-        res <- dbGetQuery(conn,sql)
-        songId <- res["songId"]
-        
-       }
-      
-      line = as.character(x["line"])
-      
-      ##TODO: Insert song line
-      sql <- paste("INSERT INTO SongLine (line, lineNo, songId) VALUES ('",line,"',",x["lineNo"],",",songId,")",sep="")
-      dbSendQuery(conn,sql)
-      
-    }
-    #)
-  }
-  dbDisconnect(conn)  
-}
+# importAlbumLyrics <- function(songLines, artistName, albumNo, albumTitle, notes=NULL,overwrite=FALSE)
+# {
+#   songLines$title <- sapply(songLines$title,as.character)
+#   songLines$line <- sapply(songLines$line,as.character)
+#   
+#   conn <- dbConnect(MySQL(), user="bsimpkins", 
+#       password="yourmomma",
+#       dbname="lyric_database", 
+#       host="192.168.0.11")
+#   
+#   ##Check if artist exists. If so, get id. If not, add.
+#   res <- dbGetQuery(conn, paste("SELECT artistId FROM Artist WHERE artistName = '",artistName,"'",sep=""))
+#   if (nrow(res) == 0)
+#   {
+#     dbSendQuery(conn, paste("INSERT INTO Artist (artistName) VALUES ('",artistName,"')",sep=""))
+#   }
+#   
+#   res <- dbGetQuery(conn, paste("SELECT artistId FROM Artist WHERE artistName = '",artistName,"'",sep=""))
+#   artistId <- res["artistId"]
+#   
+#   ##Check to see if album exists
+#   res <- dbGetQuery(conn, paste("SELECT albumId FROM Album WHERE artistId = ",artistId," AND albumTitle = '",albumTitle,"'",sep=""))
+#   if (nrow(res) > 0)
+#   {
+#     warning(paste("Album exists! Overwrite=",overwrite))
+#     if (overwrite)       ##If overwrite specified, delete all songs and song lines here to start clean.
+#     {
+#       ##TODO: Clean out songs and songLines. First query Song to get a list of songs for album. Then delete.
+#     }
+#   }else{
+#     sql <- "INSERT INTO Album (albumNo, albumTitle, artistId) VALUES (<albumNo>,'<albumTitle>',<artistId>)"
+#     sql <- gsub("<albumNo>",albumNo,sql,fixed = T)
+#     sql <- gsub("<albumTitle>",albumTitle,sql,fixed = T)
+#     sql <- gsub("<artistId>",artistId,sql,fixed = T)
+#     
+#     dbSendQuery(conn,sql)
+#     
+#     ##Get generated album Id
+#     sql <- paste("SELECT albumId FROM Album WHERE artistId = ",artistId," AND albumTitle = '",albumTitle,"'",sep="")
+#     res <- dbGetQuery(conn,sql)
+#     albumId <- res["albumId"]
+#     
+#     ##Loop through song lines and add them
+#     songNo <- 0
+#     songId <- NULL
+#     
+#     #apply(songLines,1,function(x)
+#     for (i in 1:nrow(songLines))
+#     {
+#       x <- songLines[i,]
+#       if (as.numeric(x["songNo"]) > as.numeric(songNo))
+#       {
+#         songNo <- x["songNo"]
+#         songTitle <- as.character(x["title"])
+#         
+#         ##TODO: Insert song into song
+#         sql <- paste("INSERT INTO Song (songNo, songTitle, albumId) VALUES (",songNo,",'",songTitle,"',",albumId,")",sep="")
+#         dbSendQuery(conn,sql)
+#         ##TODO: Get generated songId
+#         sql <- paste("SELECT songId FROM Song WHERE albumId=",albumId," AND songTitle='",songTitle,"'",sep="")
+#         res <- dbGetQuery(conn,sql)
+#         songId <- res["songId"]
+#         
+#        }
+#       
+#       line = as.character(x["line"])
+#       
+#       ##TODO: Insert song line
+#       sql <- paste("INSERT INTO SongLine (line, lineNo, songId) VALUES ('",line,"',",x["lineNo"],",",songId,")",sep="")
+#       dbSendQuery(conn,sql)
+#       
+#     }
+#     #)
+#   }
+#   dbDisconnect(conn)  
+# }
 
 
 ######
@@ -190,5 +190,3 @@ aUrl <- "/lyrics/devintownsend/oceanmachine.html"
 sLines <- getLyricsForAlbum(paste(rootURL,aUrl,sep=""))
 artistName <- "Devin Townsend"
 songLines <- sLines$songLines
-albumNo <- 2
-albumTitle = "Ocean Machine"
