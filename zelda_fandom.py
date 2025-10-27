@@ -5,6 +5,7 @@ import pandas as pd
 
 file_out = "/home/bsimpkins/Desktop/BOTW_catalog.xlsx"
 
+
 def parse_url(url):
     resp = requests.get(url)
 
@@ -25,10 +26,10 @@ def parse_url(url):
 
 #### Weapons
 tree = parse_url("https://zelda.fandom.com/wiki/Weapon")
-t = tree[0].xpath('//table[@class="wikitable"]')
+t = tree.xpath('//table[contains(@class, "wikitable")]')
 rows = t[0].xpath("//tr")
 
-weapons_dict = {
+item_dict = {
     "weapon":[],
     "compendium_no":[],
     "archetype":[],
@@ -43,21 +44,21 @@ weapons_dict = {
 
 def add_cell_to_weapons_dict(td_i, val):
     if td_i == 0:
-        weapons_dict["weapon"].append(val)
+        item_dict["weapon"].append(val)
     elif td_i == 1:
-        weapons_dict["compendium_no"].append(val)
+        item_dict["compendium_no"].append(val)
     elif td_i == 2:
-        weapons_dict["archetype"].append(val)
+        item_dict["archetype"].append(val)
     elif td_i == 3:
-        weapons_dict["category"].append(val)
+        item_dict["category"].append(val)
     elif td_i == 4:
-        weapons_dict["shield_simultaneous"].append(val)
+        item_dict["shield_simultaneous"].append(val)
     elif td_i == 5:
-        weapons_dict["attack"].append(val)
+        item_dict["attack"].append(val)
     elif td_i == 6:
-        weapons_dict["durability"].append(val)
+        item_dict["durability"].append(val)
     elif td_i == 7:
-        weapons_dict["description"].append(val)
+        item_dict["description"].append(val)
 
 
 i = 1 # Skip header row
@@ -67,7 +68,7 @@ while i < len(rows):
     tds = rows[i].getchildren()
     # Loop through cells
 
-    if len(tds) == len(weapons_dict):
+    if len(tds) == len(item_dict):
         td_i = 0
         for td in tds:
             print(f"cell #{td_i}: {td.text_content()}")
@@ -76,7 +77,7 @@ while i < len(rows):
             td_i += 1
     i += 1
 
-weapons_df = pd.DataFrame(weapons_dict)
+weapons_df = pd.DataFrame(item_dict)
 #weapons_df.to_excel(file_out,index=False,sheet_name="Weapons")
 
 #### Shields
@@ -100,7 +101,7 @@ while iter_count <= 20:
 
 rows = node[0].findall('tr')
 
-shields_dict = {
+item_dict = {
     "shield":[],
     "compendium_no":[],
     "shield_guard":[],
@@ -113,17 +114,17 @@ shields_dict = {
 
 def add_cell_to_shields_dict(td_i, val):
     if td_i == 0:
-        shields_dict["shield"].append(val)
+        item_dict["shield"].append(val)
     elif td_i == 1:
-        shields_dict["compendium_no"].append(val)
+        item_dict["compendium_no"].append(val)
     elif td_i == 2:
-        shields_dict["shield_guard"].append(val)
+        item_dict["shield_guard"].append(val)
     elif td_i == 3:
-        shields_dict["durability"].append(val)
+        item_dict["durability"].append(val)
     elif td_i == 4:
-        shields_dict["composition"].append(val)
+        item_dict["composition"].append(val)
     elif td_i == 5:
-        shields_dict["description"].append(val)
+        item_dict["description"].append(val)
 
 
 i = 1 # Skip header row
@@ -133,7 +134,7 @@ while i < len(rows):
     tds = rows[i].getchildren()
     # Loop through cells
 
-    if len(tds) == len(shields_dict):
+    if len(tds) == len(item_dict):
         td_i = 0
         for td in tds:
             print(f"cell #{td_i}: {td.text_content()}")
@@ -142,10 +143,163 @@ while i < len(rows):
             td_i += 1
     i += 1
 
-shields_df = pd.DataFrame(shields_dict)
+shields_df = pd.DataFrame(item_dict)
 #shields_df.to_excel(file_out,index=False,sheet_name="Shields")
 
+#### Bows
+tree = parse_url("https://zelda.fandom.com/wiki/Bow")
+botw_header = tree.xpath('//span[@id="Breath_of_the_Wild"]')[0].getparent()
+
+node = botw_header
+
+iter_count = 0
+while iter_count <= 20:
+    node = node.getnext()
+    print(f'node tag={node.tag}')
+    if node.tag == "table":
+        break
+    iter_count += 1
+
+rows = node[0].findall('tr')
+
+item_dict = {
+    "bow": [],
+    "compendium_no": [],
+    "strength": [],
+    "durability": [],
+    "range": [],
+    "description": []
+
+}
+
+
+def add_cell_to_bows_dict(td_i, val):
+    if td_i == 0:
+        item_dict["bow"].append(val)
+    elif td_i == 1:
+        item_dict["compendium_no"].append(val)
+    elif td_i == 2:
+        item_dict["strength"].append(val)
+    elif td_i == 3:
+        item_dict["durability"].append(val)
+    elif td_i == 4:
+        item_dict["range"].append(val)
+    elif td_i == 5:
+        item_dict["description"].append(val)
+
+i = 1 # Skip header row
+
+# Loop through rows
+while i < len(rows):
+    tds = rows[i].getchildren()
+    # Loop through cells
+
+    if len(tds) == len(item_dict):
+        td_i = 0
+        for td in tds:
+            print(f"cell #{td_i}: {td.text_content()}")
+            add_cell_to_bows_dict(td_i,td.text_content().replace("\n",""))
+
+            td_i += 1
+    i += 1
+
+bows_df = pd.DataFrame(item_dict)
+
+#### Armor
+tree = parse_url("https://zelda.fandom.com/wiki/Armor/Breath_of_the_Wild")
+
+t = tree.xpath('//table[contains(@class, "wikitable")]')
+
+## Three tables. Head gear, body gear, leg gear. Create category to distinguish
+
+item_dict = {
+    "armor": [],
+    "category": [],
+    "defense": [],
+    "effect": [],
+    "description": []
+}
+
+
+def add_cell_to_armour_dict(td_i, val):
+    if td_i == 0:
+        item_dict["armor"].append(val)
+    elif td_i == 1:
+        item_dict["defense"].append(val)
+    elif td_i == 2:
+        item_dict["effect"].append(val)
+    elif td_i == 3:
+        item_dict["description"].append(val)
+
+
+# Head gear
+rows = t[0].xpath("//tr")
+
+i = 1 # Skip header row
+
+# Loop through rows
+while i < len(rows):
+    tds = rows[i].getchildren()
+    # Loop through cells
+
+    if len(tds) == 4:
+        td_i = 0
+        item_dict["category"].append('Head Gear')
+        for td in tds:
+            print(f"cell #{td_i}: {td.text_content()}")
+            add_cell_to_armour_dict(td_i, td.text_content().replace("\n",""))
+
+            td_i += 1
+    i += 1
+
+# Body gear
+rows = t[1].xpath("//tr")
+
+i = 1  # Skip header row
+
+# Loop through rows
+while i < len(rows):
+    tds = rows[i].getchildren()
+    # Loop through cells
+
+    if len(tds) == 4:
+        td_i = 0
+        item_dict["category"].append('Body Gear')
+        for td in tds:
+            print(f"cell #{td_i}: {td.text_content()}")
+            add_cell_to_armour_dict(td_i, td.text_content().replace("\n", ""))
+
+            td_i += 1
+    i += 1
+
+# Leg gear
+rows = t[2].xpath("//tr")
+
+i = 1  # Skip header row
+
+# Loop through rows
+while i < len(rows):
+    tds = rows[i].getchildren()
+    # Loop through cells
+
+    if len(tds) == 4:
+        td_i = 0
+        item_dict["category"].append('Leg Gear')
+        for td in tds:
+            print(f"cell #{td_i}: {td.text_content()}")
+            add_cell_to_armour_dict(td_i, td.text_content().replace("\n", ""))
+
+            td_i += 1
+    i += 1
+
+
+armour_df = pd.DataFrame(item_dict)
+
+
+#################### Write Excel file
 with pd.ExcelWriter(file_out) as writer:
     weapons_df.to_excel(writer, sheet_name='Weapons',index=False)
     shields_df.to_excel(writer, sheet_name='Shields',index=False)
+    bows_df.to_excel(writer, sheet_name='Bows', index=False)
+    armour_df.to_excel(writer, sheet_name='Armour', index=False)
 
