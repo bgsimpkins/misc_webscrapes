@@ -82,10 +82,12 @@ weapons_df = pd.DataFrame(item_dict)
 
 #### Shields
 tree = parse_url("https://zelda.fandom.com/wiki/Shield")
+
+# Find BOTW title and get parent (header)
 botw_header = tree.xpath('//span[@id="Breath_of_the_Wild"]')[0].getparent()
 
+# Go through next nodes until table is found
 node = botw_header
-
 iter_count = 0
 while iter_count <= 20:
     node = node.getnext()
@@ -148,10 +150,12 @@ shields_df = pd.DataFrame(item_dict)
 
 #### Bows
 tree = parse_url("https://zelda.fandom.com/wiki/Bow")
+
+# Find BOTW title and get parent (header)
 botw_header = tree.xpath('//span[@id="Breath_of_the_Wild"]')[0].getparent()
 
+# Go through next nodes until table is found
 node = botw_header
-
 iter_count = 0
 while iter_count <= 20:
     node = node.getnext()
