@@ -295,11 +295,55 @@ while i < len(rows):
 
 armour_df = pd.DataFrame(item_dict)
 
+#### Materials
+tree = parse_url("https://zelda.fandom.com/wiki/Material/Breath_of_the_Wild")
+t = tree.xpath('//table[contains(@class, "wikitable")]')
+
+item_dict = {
+    "material": [],
+    "description": [],
+    "value": [],
+    "additional_uses": []
+}
+
+
+def add_cell_to_mats_dict(td_i, val):
+    if td_i == 0:
+        item_dict["material"].append(val)
+    elif td_i == 1:
+        item_dict["description"].append(val)
+    elif td_i == 2:
+        item_dict["value"].append(val)
+    elif td_i == 3:
+        item_dict["additional_uses"].append(val)
+
+
+rows = t[0].xpath("//tr")
+
+i = 1 # Skip header row
+
+# Loop through rows
+while i < len(rows):
+    tds = rows[i].getchildren()
+    # Loop through cells
+
+    if len(tds) == 4:
+        td_i = 0
+        for td in tds:
+            print(f"cell #{td_i}: {td.text_content()}")
+            add_cell_to_mats_dict(td_i, td.text_content().replace("\n",""))
+
+            td_i += 1
+    i += 1
+
+materials_df = pd.DataFrame(item_dict)
+
 
 #################### Write Excel file
 with pd.ExcelWriter(file_out) as writer:
-    weapons_df.to_excel(writer, sheet_name='Weapons',index=False)
-    shields_df.to_excel(writer, sheet_name='Shields',index=False)
+    weapons_df.to_excel(writer, sheet_name='Weapons', index=False)
+    shields_df.to_excel(writer, sheet_name='Shields', index=False)
     bows_df.to_excel(writer, sheet_name='Bows', index=False)
     armour_df.to_excel(writer, sheet_name='Armour', index=False)
+    materials_df.to_excel(writer, sheet_name='Materials', index=False)
 
